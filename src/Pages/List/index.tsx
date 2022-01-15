@@ -4,8 +4,12 @@ import HistoryFinanceCard from '../../components/HistoryFinanceCard';
 import SelectInput from '../../components/SelectInput';
 import expenses from '../../repositories/expenses';
 import gains from '../../repositories/gains';
+import formatCurrency from '../../utils/formatCurrency';
+import formatDate from '../../utils/formatDate';
 import { Container, Content, Filters } from './styles';
+
 /* import { Title } from '../../components/Aside/styles';
+import formatCurrency from '../../utils/formatCurrency';
  */
 interface IRoutesParams {
   match: {
@@ -26,6 +30,13 @@ interface IData {
 
 const List: React.FC<IRoutesParams> = ({ match }) => {
   const [data, setData] = useState<IData[]>([]);
+  const [monthSelected, setMonthSelected] = useState<string>(
+    String(new Date().getMonth() + 1)
+  );
+  const [yearSelected, setYearSelected] = useState<string>(
+    String(new Date().getFullYear())
+  );
+
   console.log('data: ', data);
   const { type } = match.params;
 
@@ -51,39 +62,66 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
   }, [type]); */
 
   const months = [
-    { value: '7', label: 'Julho' },
-    { value: '8', label: 'Agosto' },
-    { value: '9', label: 'Setembro' }
+    { value: '1', label: 'Janeiro' },
+    { value: '5', label: 'Maio' },
+    { value: '7', label: 'Julho' }
   ];
-  const years = [
+  /*   const years = [
     { value: '2021', label: 2021 },
     { value: '2020', label: 2020 },
     { value: '2019', label: 2019 }
-  ];
+  ]; */
+
+  const years = useMemo(() => {
+    let uniqueYears: number[] = [];
+    listData.forEach((item) => {
+      const date = new Date(item.date);
+      const year = date.getFullYear();
+      if (!uniqueYears.includes(year)) {
+        uniqueYears.push(year);
+      }
+    });
+  }, []);
 
   const listData = useMemo(() => {
     return type === 'entry-balance' ? gains : expenses;
   }, [type]);
 
   useEffect(() => {
-    const response = listData.map((item) => {
+    const filteredData = listData.filter((item) => {
+      const date = new Date(item.date);
+      const month = String(date.getMonth() + 1);
+      const year = String(date.getFullYear());
+
+      return month === monthSelected && year === yearSelected;
+    });
+
+    const formattedData = filteredData.map((item) => {
       return {
-        id: String(Math.random() * data.length),
+        id: String(new Date().getTime()) + item.amount,
         description: item.description,
-        amountFormatted: item.amount,
+        amountFormatted: formatCurrency(Number(item.amount)),
         frequency: item.frequency,
-        dateFormatted: item.date,
+        dateFormatted: formatDate(item.date),
         tagColor: item.frequency === 'recorrente' ? '#4E41F0' : '#E44C4E'
       };
     });
-    setData(response);
-  }, []);
+    setData(formattedData);
+  }, [listData, monthSelected, yearSelected, data.length]);
 
   return (
     <Container>
       <ContentHeader title={title} lineColor={lineColor}>
-        <SelectInput options={months}></SelectInput>
-        <SelectInput options={years}></SelectInput>
+        <SelectInput
+          options={months}
+          onChange={(e) => setMonthSelected(e.target.value)}
+          defaultValue={monthSelected}
+        />
+        <SelectInput
+          options={years}
+          onChange={(e) => setYearSelected(e.target.value)}
+          defaultValue={yearSelected}
+        />
       </ContentHeader>
       <Filters>
         <button type="button" className="tag-filter tag-filter-recurrent">
