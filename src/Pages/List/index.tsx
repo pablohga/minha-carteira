@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { uuid } from 'uuidv4';
 import ContentHeader from '../../components/ContentHeader';
 import HistoryFinanceCard from '../../components/HistoryFinanceCard';
 import SelectInput from '../../components/SelectInput';
@@ -6,6 +7,7 @@ import expenses from '../../repositories/expenses';
 import gains from '../../repositories/gains';
 import formatCurrency from '../../utils/formatCurrency';
 import formatDate from '../../utils/formatDate';
+import listOfMonths from '../../utils/months';
 import { Container, Content, Filters } from './styles';
 
 /* import { Title } from '../../components/Aside/styles';
@@ -37,6 +39,11 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
     String(new Date().getFullYear())
   );
 
+  const [selectedFrequency, setSelectedFrequency] = useState([
+    'recorrente',
+    'eventual'
+  ]);
+
   console.log('data: ', data);
   const { type } = match.params;
 
@@ -60,12 +67,10 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
           lineColor: '#E44C4E'
         };
   }, [type]); */
+  const listData = useMemo(() => {
+    return type === 'entry-balance' ? gains : expenses;
+  }, [type]);
 
-  const months = [
-    { value: '1', label: 'Janeiro' },
-    { value: '5', label: 'Maio' },
-    { value: '7', label: 'Julho' }
-  ];
   /*   const years = [
     { value: '2021', label: 2021 },
     { value: '2020', label: 2020 },
@@ -81,11 +86,35 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
         uniqueYears.push(year);
       }
     });
+
+    return uniqueYears.map((year) => {
+      return {
+        value: year,
+        label: year
+      };
+    });
+  }, [listData]);
+
+  const months = useMemo(() => {
+    return listOfMonths.map((month, index) => {
+      return {
+        value: index + 1,
+        label: month
+      };
+    });
   }, []);
 
-  const listData = useMemo(() => {
-    return type === 'entry-balance' ? gains : expenses;
-  }, [type]);
+  const handleFrequencyClick = (frequency: string) => {
+    const alreadySelected = selectedFrequency.findIndex(
+      (item) => item === frequency
+    );
+    if (alreadySelected >= 0) {
+      const filtered = selectedFrequency.filter((item) => item !== frequency);
+      setSelectedFrequency(filtered);
+    } else {
+      setSelectedFrequency((prev) => [...prev, frequency]);
+    }
+  };
 
   useEffect(() => {
     const filteredData = listData.filter((item) => {
@@ -93,12 +122,17 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
       const month = String(date.getMonth() + 1);
       const year = String(date.getFullYear());
 
-      return month === monthSelected && year === yearSelected;
+      return (
+        month === monthSelected &&
+        year === yearSelected &&
+        selectedFrequency.includes(item.frequency)
+      );
     });
 
     const formattedData = filteredData.map((item) => {
       return {
         id: String(new Date().getTime()) + item.amount,
+        /* id: uuid(), */
         description: item.description,
         amountFormatted: formatCurrency(Number(item.amount)),
         frequency: item.frequency,
@@ -107,7 +141,7 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
       };
     });
     setData(formattedData);
-  }, [listData, monthSelected, yearSelected, data.length]);
+  }, [listData, monthSelected, yearSelected, data.length, selectedFrequency]);
 
   return (
     <Container>
@@ -124,10 +158,22 @@ const List: React.FC<IRoutesParams> = ({ match }) => {
         />
       </ContentHeader>
       <Filters>
-        <button type="button" className="tag-filter tag-filter-recurrent">
+        <button
+          type="button"
+          className={`tag-filter tag-filter-recurrent ${
+            selectedFrequency.includes('recorrente') && 'tag-actived'
+          }`}
+          onClick={() => handleFrequencyClick('recorrente')}
+        >
           Recorrentes
         </button>
-        <button type="button" className="tag-filter tag-filter-eventual">
+        <button
+          type="button"
+          className={`tag-filter tag-filter-eventual  ${
+            selectedFrequency.includes('eventual') && 'tag-actived'
+          }`}
+          onClick={() => handleFrequencyClick('eventual')}
+        >
           Eventuais
         </button>
       </Filters>
