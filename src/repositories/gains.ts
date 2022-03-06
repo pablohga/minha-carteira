@@ -4,7 +4,14 @@ export default [
     amount: '1300.52',
     type: 'entrada',
     frequency: 'recorrente',
-    date: '2017-01-10'
+    date: '2019-01-10'
+  },
+  {
+    description: 'Salário',
+    amount: '1300.52',
+    type: 'entrada',
+    frequency: 'recorrente',
+    date: '2020-01-10'
   },
   {
     description: 'Freela',
