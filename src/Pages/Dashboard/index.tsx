@@ -12,6 +12,7 @@ import happyImg from '../../assets/happy.svg';
 import sadImg from '../../assets/sad.svg';
 import grinningImg from '../../assets/grinning.svg';
 import PieChartBox from '../../components/PieChartBox';
+import HistoryBox from '../../components/HIstoryBox';
 
 const Dashboard: React.FC = () => {
   const [monthSelected, setMonthSelected] = useState<number>(
@@ -205,6 +206,7 @@ const Dashboard: React.FC = () => {
           icon={message.icon}
         />
         <PieChartBox data={relationExpensesVersusGains} />
+        <HistoryBox></HistoryBox>
       </Content>
     </Container>
   );
