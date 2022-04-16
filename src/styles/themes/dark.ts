@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   title: 'dark',
 
@@ -12,6 +13,6 @@ export default {
 
     sucess: '#4E41F0',
     info: '#F7931B',
-    warning: '#E44C4E',
+    warning: '#E44C4E'
   }
-}
+};
